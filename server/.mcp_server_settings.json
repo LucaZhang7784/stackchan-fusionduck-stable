@@ -1,10 +1,10 @@
 {
   "mcpServers": {
     "fusion-gateway": {
-      "url": "http://${TAILSCALE_HOST}:8010/mcp",
+      "url": "http://100.69.221.25:8010/mcp",
       "transport": "streamable-http",
       "headers": {
-        "Authorization": "Bearer ${STACKCHAN_AUTH_TOKEN}"
+        "Authorization": "Bearer f5c9a1e0-2b7d-4f3e-9a8b-6c4d2e1f0a3b"
       },
       "des": "StackChan 融合网关: codex_query/claude_query/robot_pending/robot_status/robot_say/ws_probe"
     }

@@ -1,5 +1,19 @@
 # StackChan 融合方案
 
+## MicroDuck 生产版本（2026-09-10）
+
+本仓库当前生产基线为 **MicroDuck** 固件与配套 Gateway、System Tray、Desktop Widget。
+
+- 固件采用双轨构建：MicroDuck 为演进轨，Legacy 保留为只读回退基线。
+- Push MQTT 使用两阶段网络生命周期、30 秒心跳、QoS1、设备 ACK 与队列核销。
+- 实测通过：μ-law 实声播报、START/STOP、屏幕确认、点头动作、GC0308 JPEG 分块抓拍。
+- 生产固件写入地址：`0x410000`（App-Only，保留 NVS）。
+- 生产固件 SHA-256：`0A05C4D4B1403760EB4CF0CBB1B4CAFDF314E6A8067574BAADD50EA78C50020A`
+
+### 致谢
+
+感谢 M5Stack StackChan、Xiaozhi.me、ESP-IDF、EdgeTTS、Paho MQTT 及相关开源社区的项目与维护者；本项目的硬件适配、语音链路和桌面端集成均建立在这些优秀工作的基础上。
+
 让 **StackChan 桌面机器人**（M5Stack CoreS3）通过语音指挥本机的
 **codex / claude / deepseek / agy / pi / vscode** AI agent：查询状态、派发任务、播报结果、语音确认。
 

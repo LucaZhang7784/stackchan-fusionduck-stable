@@ -46,8 +46,10 @@ def _log(line: str) -> None:
 
 
 def _post(etype: str, summary: str, session_id: str, msg_uid: str = "") -> None:
+    now = time.time()
     body = json.dumps(
-        {"agent": AGENT, "event": etype, "summary": summary, "session_id": session_id, "msg_uid": msg_uid},
+        {"agent": AGENT, "event": etype, "summary": summary, "session_id": session_id, "msg_uid": msg_uid,
+         "event_created_at": now, "hook_post_started_at": now},
         ensure_ascii=False,
     ).encode("utf-8")
     req = urllib.request.Request(
@@ -56,9 +58,9 @@ def _post(etype: str, summary: str, session_id: str, msg_uid: str = "") -> None:
     )
     try:
         urllib.request.urlopen(req, timeout=2.5).read()
-        _log(f"posted {etype} ok {msg_uid}: {summary[:80]}")
+        _log(f"posted {etype} ok {msg_uid} hook_post_completed_at={time.time():.3f}: {summary[:80]}")
     except Exception:
-        _log(f"post {etype} FAILED {msg_uid}: {summary[:80]}")
+        _log(f"post {etype} FAILED {msg_uid} hook_post_completed_at={time.time():.3f}: {summary[:80]}")
 
 
 def _clip(text: str, n: int = 300) -> str:

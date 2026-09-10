@@ -174,6 +174,18 @@ python scripts\verify_connectivity.py
 
 ## 敏感信息
 
+## 致谢项目与维护者
+
+- [M5Stack/StackChan](https://github.com/m5stack/StackChan) — 维护者：M5Stack 团队。
+- [pollen-robotics/microduck](https://github.com/pollen-robotics/microduck) — 维护者：Pollen Robotics 团队及社区贡献者。
+- [78/xiaozhi-esp32](https://github.com/78/xiaozhi-esp32) — 维护者：78（Xiaozhi ESP32 社区）。
+- [xinnan-tech/xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) — 维护者：xinnan-tech 团队及社区贡献者。
+- [espressif/esp-idf](https://github.com/espressif/esp-idf) — 维护者：Espressif Systems 与开源贡献者。
+- [rany2/edge-tts](https://github.com/rany2/edge-tts) — 维护者：rany2 与社区贡献者。
+- [eclipse-paho/paho.mqtt.python](https://github.com/eclipse-paho/paho.mqtt.python) — 维护者：Eclipse Paho 项目团队。
+
+本项目仅在相应开源许可证允许的范围内使用、集成或参考上述项目；各项目的版权与维护责任归其原作者和维护者所有。
+
 本仓库**不含任何真实凭据**：token / API key / MAC / 域名均为占位符
 （`YOUR_*` / `AA:BB:CC:DD:EE:FF`）。真实值只存在于本机 `.env`、`config.json`、
 docker 配置。`.gitignore` 已忽略所有运行时敏感文件。

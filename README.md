@@ -2,15 +2,15 @@
 
 ## MicroDuck 生产版本
 
-本版本吸收 MicroDuck 项目的核心特点：小步拆分、双轨构建、明确资源所有权、网络与外设解耦、Legacy 可回退，以及面向嵌入式实时性的最小接口设计。
+本版本在 Fusion 版本已验证的云链路、MQTT 播报与桌面协同基础上，引入 MicroDuck 的核心思路：小步拆分、明确资源所有权、网络与外设解耦，以及面向嵌入式实时性的最小接口设计。
 
-MicroDuck 轨包含 Push MQTT 两阶段生命周期、30 秒心跳、QoS1 与 ACK 闭环、μ-law 音频播报、屏幕确认、传感器/电源管理、Cat 表情、动作联动、System Tray 与 Desktop Widget。Legacy 轨保持为只读安全基线。
+实现内容包括 Push MQTT 两阶段生命周期、30 秒心跳、QoS1 与 ACK 闭环、μ-law 音频播报、屏幕确认、传感器/电源管理、Cat 表情、动作联动、System Tray 与 Desktop Widget；各模块按 MicroDuck 思路渐进抽取，保持接口清晰和可验证。
 
 生产固件：`xiaozhi.bin`，App-Only 写入 `0x410000`，SHA-256：`0A05C4D4B1403760EB4CF0CBB1B4CAFDF314E6A8067574BAADD50EA78C50020A`。
 
 ### 致谢
 
-感谢 MicroDuck 项目及其贡献者提供的模块化嵌入式架构启发；感谢 M5Stack StackChan、Xiaozhi.me、ESP-IDF、EdgeTTS、Paho MQTT 及相关开源社区的项目与维护者。
+感谢 Fusion 版本阶段的设计、联调与测试积累；感谢 MicroDuck 项目及其贡献者提供的模块化嵌入式架构启发；感谢 M5Stack StackChan、Xiaozhi.me、ESP-IDF、EdgeTTS、Paho MQTT 及相关开源社区的项目与维护者。
 ## 架构
 
 ```

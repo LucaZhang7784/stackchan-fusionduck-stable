@@ -63,7 +63,7 @@ DEFAULT_CONFIG = {
     "endpoint_health_url": "http://127.0.0.1:8004/mcp_endpoint/health?key=REMOVED_EXPOSED_HEALTH_KEY",
     "docker_container": "xiaozhi-esp32-server",
     "docker_log_lookback_minutes": 120,
-    "auth_token": "REMOVED_EXPOSED_TOKEN",
+    "auth_token": os.environ.get("FUSION_GATEWAY_TOKEN", ""),
     "allow_codex": True,
     "allow_claude": True,
     "codex_cli": "codex",

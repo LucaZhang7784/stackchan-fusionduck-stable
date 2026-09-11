@@ -16,6 +16,7 @@
 #include <mqtt_client.h>
 #include <esp_crt_bundle.h>
 #include <atomic>
+#include <array>
 #include <driver/i2c_master.h>
 #include <freertos/semphr.h>
 #include <esp_lcd_panel_io.h>
@@ -1544,6 +1545,8 @@ private:
     // ---- 云链路主动推送: 板级第二条 MQTT (独立 esp_mqtt_client, 订阅 stackchan/{mac}/push) ----
     esp_mqtt_client_handle_t push_mqtt_client_ = nullptr;
     esp_timer_handle_t push_mqtt_recovery_timer_ = nullptr;
+    esp_timer_handle_t push_heartbeat_timer_ = nullptr;
+    std::atomic<uint32_t> push_heartbeat_seq_{0};
     esp_timer_handle_t push_wifi_debounce_timer_ = nullptr;
     std::atomic<bool> push_active_{false};
     std::atomic<bool> push_mqtt_started_{false};
@@ -1566,12 +1569,14 @@ private:
     std::string push_topic_;
     std::string push_ack_topic_;
     std::string push_status_topic_;
+    std::string push_heartbeat_topic_;
     std::string push_diag_topic_;
     std::string push_photo_topic_;
     std::string push_confirm_topic_;
     std::string push_control_topic_;
     std::string push_control_ack_topic_;
-    std::string last_control_request_id_;
+    std::array<std::string, 32> control_request_cache_{};
+    size_t control_request_cache_pos_ = 0;
     std::string push_msg_uid_;
     bool push_play_start_pending_ = false;
 
@@ -1687,6 +1692,20 @@ private:
         }
         case MQTT_EVENT_DISCONNECTED:
         case MQTT_EVENT_ERROR: {
+            // ERROR is diagnostic only; ESP-MQTT may emit it while the socket is
+            // still usable. Treating it as DISCONNECTED caused false offline
+            // transitions and premature URI failover.
+            if (event_id == MQTT_EVENT_ERROR) {
+                if (ev != nullptr && ev->error_handle != nullptr) {
+                    ESP_LOGW(TAG, "push MQTT error: type=%d tls=%d sock=%d",
+                             ev->error_handle->error_type,
+                             ev->error_handle->esp_tls_last_esp_err,
+                             ev->error_handle->esp_transport_sock_errno);
+                } else {
+                    ESP_LOGW(TAG, "push MQTT error event");
+                }
+                break;
+            }
             self->push_mqtt_connected_ = false;
             const int64_t now_ms = esp_timer_get_time() / 1000;
             if (self->push_mqtt_offline_since_ms_ == 0) {
@@ -1785,8 +1804,10 @@ private:
                 // Do not reject solely on RTC skew; issued remains authenticated by HMAC.
                 const int volume = std::min<int>(static_cast<uint8_t>(ev->data[11]), 100);
                 char req[9] = {}; for (int i = 0; i < 4; ++i) snprintf(req + i * 2, 3, "%02x", static_cast<uint8_t>(ev->data[3 + i]));
-                if (self->last_control_request_id_ == req) break;  // callback task内的最小重放防护
-                self->last_control_request_id_ = req;
+                bool duplicate = false;
+                for (const auto& seen : self->control_request_cache_) duplicate |= (seen == req);
+                if (duplicate) break;
+                self->control_request_cache_[self->control_request_cache_pos_++ % self->control_request_cache_.size()] = req;
                 Application::GetInstance().Schedule([self, volume, request_id = std::string(req)]() {
                     auto* codec = self->GetAudioCodec();
                     const bool ok = codec != nullptr;
@@ -2093,6 +2114,7 @@ private:
         push_topic_ = "stackchan/" + SystemInfo::GetMacAddress() + "/push";
         push_ack_topic_ = "stackchan/" + SystemInfo::GetMacAddress() + "/ack";
         push_status_topic_ = "stackchan/" + SystemInfo::GetMacAddress() + "/status";
+        push_heartbeat_topic_ = "stackchan/" + SystemInfo::GetMacAddress() + "/heartbeat";
         push_diag_topic_ = "stackchan/" + SystemInfo::GetMacAddress() + "/diag";
         push_photo_topic_ = "stackchan/" + SystemInfo::GetMacAddress() + "/photo";
         push_confirm_topic_ = "stackchan/" + SystemInfo::GetMacAddress() + "/confirm";
@@ -2130,6 +2152,19 @@ private:
             return;
         }
         esp_mqtt_client_register_event(push_mqtt_client_, MQTT_EVENT_ANY, PushMqttEvent, this);
+        esp_timer_create_args_t hb_args = {};
+        hb_args.callback = [](void* arg) {
+            auto* self = static_cast<M5StackCoreS3Board*>(arg);
+            if (!self->push_mqtt_connected_ || self->push_mqtt_client_ == nullptr) return;
+            char payload[96];
+            const uint32_t seq = ++self->push_heartbeat_seq_;
+            snprintf(payload, sizeof(payload), "{\"seq\":%lu,\"uptime_s\":%lu}",
+                     static_cast<unsigned long>(seq), static_cast<unsigned long>(esp_timer_get_time() / 1000000));
+            esp_mqtt_client_publish(self->push_mqtt_client_, self->push_heartbeat_topic_.c_str(), payload, 0, 0, 0);
+        };
+        hb_args.arg = this; hb_args.dispatch_method = ESP_TIMER_TASK; hb_args.name = "push_heartbeat";
+        if (esp_timer_create(&hb_args, &push_heartbeat_timer_) == ESP_OK)
+            esp_timer_start_periodic(push_heartbeat_timer_, 30 * 1000 * 1000);
         esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, PushWifiEvent, this);
         esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, PushWifiEvent, this);
         // Wi-Fi got-IP only queues this callback after a 2s quiet period; it never

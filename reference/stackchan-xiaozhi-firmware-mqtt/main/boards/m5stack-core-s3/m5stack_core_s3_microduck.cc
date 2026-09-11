@@ -184,8 +184,8 @@ private:
     }
 
     static void OnPushMqttDisconnected(void* arg) {
-        auto* self = static_cast<M5StackCoreS3Board*>(arg);
-        if (self != nullptr) self->push_msg_ctrl_.OnDisconnected();
+        auto* ctrl = static_cast<PushMessageController*>(arg);
+        if (ctrl != nullptr) ctrl->OnDisconnected();
     }
 
     // ---- Phase 9-B: 触屏审批浮层(LVGL) ----

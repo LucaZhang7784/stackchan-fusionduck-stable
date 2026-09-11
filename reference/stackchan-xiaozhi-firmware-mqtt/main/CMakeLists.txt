@@ -1,4 +1,8 @@
 # Define source files
+# Dual-track board implementation. Legacy remains the safe default; MicroDuck
+# is opt-in and currently provides a behavior-preserving entry-point skeleton.
+set(CONFIG_STACKCHAN_BOARD_IMPL "legacy" CACHE STRING "legacy or microduck")
+set_property(CACHE CONFIG_STACKCHAN_BOARD_IMPL PROPERTY STRINGS legacy microduck)
 set(SOURCES "audio/audio_codec.cc"
             "audio/audio_service.cc"
             "audio/demuxer/ogg_demuxer.cc"
@@ -828,6 +832,50 @@ else()
         ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD_TYPE}/*.c
     )
 endif()
+if(BOARD_TYPE STREQUAL "m5stack-core-s3")
+    list(REMOVE_ITEM BOARD_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/m5stack_core_s3.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/m5stack_core_s3_legacy.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/m5stack_core_s3_microduck.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/confirm_manager.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/avatar_display.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/led_controller.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/motion_manager.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/power_manager.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/push_mqtt_config.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/push_mqtt_manager.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/push_packet_parser.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/sensor_manager.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/robot_action_dispatcher.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/camera_service.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/touch_gesture_manager.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/py32_led_controller.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/push_message_controller.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/display_service.cc")
+    if(CONFIG_STACKCHAN_BOARD_IMPL STREQUAL "microduck")
+        list(APPEND BOARD_SOURCES
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/m5stack_core_s3_microduck.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/confirm_manager.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/avatar_display.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/led_controller.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/motion_manager.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/power_manager.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/push_mqtt_config.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/push_mqtt_manager.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/push_packet_parser.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/sensor_manager.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/robot_action_dispatcher.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/camera_service.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/touch_gesture_manager.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/py32_led_controller.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/push_message_controller.cc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/display_service.cc")
+    else()
+        list(APPEND BOARD_SOURCES
+            "${CMAKE_CURRENT_SOURCE_DIR}/boards/m5stack-core-s3/m5stack_core_s3_legacy.cc")
+    endif()
+endif()
+message(STATUS ">>>>> [STACKCHAN] Selected Board Impl: ${CONFIG_STACKCHAN_BOARD_IMPL} <<<<<")
 list(APPEND SOURCES ${BOARD_SOURCES})
 
 # Select audio processor according to Kconfig
